@@ -17,6 +17,11 @@
 				-webkit-transition: none;
 				-o-transition: none;
 			}
+
+			canvas {
+				border: 1px solid black;
+				margin: 0px -1px;
+			}
 		</style>
 	</head>
 	<body>
@@ -25,22 +30,38 @@
 				<div class="col-md-8">
 					<canvas id="graph"></canvas>
 					<div class="progress">
-						<div class="progress-bar" style="width:0%"></div> <!-- aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"  -->
+						<div id="trialProgress" class="progress-bar" style="width:0%"></div>
+					</div>
+					<div class="progress">
+						<div id="totalProgress" class="progress-bar" style="width:0%"></div>
 					</div>
 					<pre id="status"></pre>
 				</div>
 				<div class="col-md-4" id="options">
-					<div class="form-group">
-						<label class="control-label" for="trait">Select For:</label>
-						<select class="form-control" id="trait">
-							<option value="health">Health</option>
-							<option value="speed">Speed</option>
-							<option value="jump">Jump</option>
-						</select>
+					<div class="form-group has-success">
+						<label class="control-label" for="healthweight">Health Weight:</label>
+						<input class="form-control" id="healthweight" value="1">
 					</div>
 
 					<div class="form-group has-success">
-						<label class="control-label" for="iterations">Iterations:</label>
+						<label class="control-label" for="speedweight">Speed Weight:</label>
+						<input class="form-control" id="speedweight" value="1">
+					</div>
+
+					<div class="form-group has-success">
+						<label class="control-label" for="jumpweight">Jump Weight:</label>
+						<input class="form-control" id="jumpweight" value="1">
+					</div>
+
+
+					
+					<div class="form-group has-success">
+						<label class="control-label" for="trials">Trials:</label>
+						<input class="form-control" id="trials" value="50">
+					</div>
+
+					<div class="form-group has-success">
+						<label class="control-label" for="iterations">Iterations per Trial:</label>
 						<input class="form-control" id="iterations" value="100">
 					</div>
 
@@ -50,6 +71,7 @@
 					</div>
 
 					<button type="button" class="btn btn-default btn-block" id="go">Go</button>
+					<button type="button" class="btn btn-default btn-block" id="cancel">Cancel</button>
 				</div>
 			</div>
 		</div>
@@ -65,7 +87,7 @@
 
 			var worker = new Worker("/horse_worker.js");
 
-			var data, totalIterations, keep;
+			var data, totalIterations;
 
 			var canvas = $("#graph")[0];
 			var ctx = canvas.getContext("2d");
@@ -75,71 +97,65 @@
 				canvas.height = canvas.width/2
 			}).resize();
 
-			function drawGraph() {
-				ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-				var scaleX = canvas.width / totalIterations;
-
-				ctx.strokeStyle = HEALTH_COLOR;
-				var scaleY = canvas.height / 16
-
-				for (var i=0; i<keep; i++) {
-					ctx.beginPath();
-					ctx.moveTo(0, Math.floor(canvas.height - (data.health[0][i]-15) * scaleY));
-					for (var j=0; j<data.health.length; j++) {
-						ctx.lineTo(Math.floor(j * scaleX), Math.floor(canvas.height - (data.health[j][i]-15) * scaleY));
-					}
-					ctx.stroke();
-				}
-
-				ctx.strokeStyle = SPEED_COLOR;
-				var scaleY = canvas.height / 0.225
-
-				for (var i=0; i<keep; i++) {
-					ctx.beginPath();
-					ctx.moveTo(0, Math.floor(canvas.height - (data.speed[0][i]-0.1125) * scaleY));
-					for (var j=0; j<data.speed.length; j++) {
-						ctx.lineTo(Math.floor(j * scaleX), Math.floor(canvas.height - (data.speed[j][i]-0.1125) * scaleY));
-					}
-					ctx.stroke();
-				}
-
-				ctx.strokeStyle = JUMP_COLOR;
-				var scaleY = canvas.height / 0.6
-
-				for (var i=0; i<keep; i++) {
-					ctx.beginPath();
-					ctx.moveTo(0, Math.floor(canvas.height - (data.jump[0][i]-0.4) * scaleY));
-					for (var j=0; j<data.jump.length; j++) {
-						ctx.lineTo(Math.floor(j * scaleX), Math.floor(canvas.height - (data.jump[j][i]-0.4) * scaleY));
-					}
-					ctx.stroke();
-				}
+			function line(x1, y1, x2, y2) {
+				ctx.beginPath();
+				ctx.moveTo(x1, y1);
+				ctx.lineTo(x2, y2);
+				ctx.stroke();
 			}
 
-			var $progress = $(".progress-bar");
-			var $status = $("#status")
+			var $trialProgress = $("#trialProgress");
+			var $totalProgress = $("#totalProgress");
+			var $status = $("#status");
 
 			worker.onmessage = function(evt) {
 				var msg = evt.data;
 				if (msg.type) {
 					switch (msg.type) {
 						case "data":
-							data.totalHorses = msg.totalHorses;
-							data.health.push(msg.health);
-							data.speed.push(msg.speed);
-							data.jump.push(msg.jump);
-							//drawGraph();
+							
+							$trialProgress.css("width", (msg.trialProgress*100)+"%");
+							$totalProgress.css("width", (msg.totalProgress*100)+"%");
 
-							$progress.css("width", (msg.iterations / totalIterations)*100 + "%");
-							$status.html("Highest Health: "+msg.health[0]/2+" hearts (max 15)<br>Highest Speed: ~"+msg.speed[0]*43+" blocks/second (max 14.5125)<br>Highest Jump: "+msg.jump[0]*5.5+" blocks (max 5.5)<br><br>Iterations: "+(msg.iterations+1)+"<br>Horses Bred: "+data.totalHorses);
+							var scaleX = canvas.width / msg.totalIterations;
+							var x1 = scaleX * msg.iteration;
+							var x2 = scaleX * (msg.iteration+1);
+
+							var i = msg.iteration;
+
+							data = msg.data;
+
+							ctx.clearRect(x1, 0, scaleX, canvas.height);
+
+							ctx.strokeStyle = HEALTH_COLOR;
+							var scaleY = canvas.height / 15;
+
+							line(x1, canvas.height - data.min.health[i-1]*scaleY,    x2, canvas.height - data.min.health[i]*scaleY);
+							line(x1, canvas.height - data.median.health[i-1]*scaleY, x2, canvas.height - data.median.health[i]*scaleY);
+							line(x1, canvas.height - data.max.health[i-1]*scaleY,    x2, canvas.height - data.max.health[i]*scaleY);
+
+							ctx.strokeStyle = SPEED_COLOR
+							var scaleY = canvas.height / 0.225;
+
+							line(x1, canvas.height - data.min.speed[i-1]*scaleY,    x2, canvas.height - data.min.speed[i]*scaleY);
+							line(x1, canvas.height - data.median.speed[i-1]*scaleY, x2, canvas.height - data.median.speed[i]*scaleY);
+							line(x1, canvas.height - data.max.speed[i-1]*scaleY,    x2, canvas.height - data.max.speed[i]*scaleY);
+
+							ctx.strokeStyle = JUMP_COLOR
+							var scaleY = canvas.height / 0.6;
+
+							line(x1, canvas.height - data.min.jump[i-1]*scaleY,    x2, canvas.height - data.min.jump[i]*scaleY);
+							line(x1, canvas.height - data.median.jump[i-1]*scaleY, x2, canvas.height - data.median.jump[i]*scaleY);
+							line(x1, canvas.height - data.max.jump[i-1]*scaleY,    x2, canvas.height - data.max.jump[i]*scaleY);
+
+							//$status.html("Highest Health: "+msg.health[0]/2+" hearts (max 15)<br>Highest Speed: ~"+msg.speed[0]*43+" blocks/second (max 14.5125)<br>Highest Jump: "+msg.jump[0]*5.5+" blocks (max 5.5)<br><br>Iterations: "+(msg.iterations+1)+"<br>Horses Bred: "+data.totalHorses);
 							return;
 						case "end":
-							$progress.css("width", "100%");
-							drawGraph();
+							$trialProgress.css("width", "100%");
+							$totalProgress.css("width", "100%");
 							return;
 						default:
-							console.log(msg)
+							console.log(data)
 							return;
 					}
 				} else {
@@ -149,7 +165,7 @@
 
 			var number_regex = /^\d+$/
 
-			$("#iterations,#keep").keyup(function() {
+			$("#iterations,#keep,#healthweight,#speedweight,#jumpweight,#trials").keyup(function() {
 				if (number_regex.test($(this).val())) {
 					$(this).parent().removeClass("has-error").addClass("has-success")
 				} else {
@@ -160,11 +176,19 @@
 			$("#go").click(function() {
 				data = {totalHorses:0, health:[], speed:[], jump:[]}
 				worker.postMessage({
-					type: "begin", 
-					trait: $("#trait").val(), 
-					iterations: totalIterations = parseInt($("#iterations").val()),
-					keep: keep = parseInt($("#keep").val())
+					type: "start",
+					healthWeight: parseInt($("#healthweight").val()),
+					speedWeight: parseInt($("#speedweight").val()),
+					jumpWeight: parseInt($("#jumpweight").val()),
+
+					trials: parseInt($("#trials").val()),
+					iterations: parseInt($("#iterations").val()),
+					keep: parseInt($("#keep").val())
 				});
+			});
+
+			$("#cancel").click(function() {
+				worker.postMessage({type: "cancel"})
 			})
 		</script>
 	</body>
