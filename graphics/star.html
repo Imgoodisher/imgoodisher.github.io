@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<style>
+			@import url("//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css");
+
+			html {
+				background-color:#000;
+				font-family:monospace;
+			}
+
+			canvas {
+				position:fixed;
+				top:0px;
+				left:0px;
+			}
+
+			#controls {
+				color:white;
+				position:fixed;
+				top:10px;
+				left:10px;
+				z-index:2;
+			}
+		</style>
+		<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+		<script src="//jqueryui.com/resources/demos/external/jquery.mousewheel.js"></script>
+		<script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+		<script>
+			$(function() {
+				var canvas = document.getElementById("main");
+				var ctx = canvas.getContext("2d");
+
+				$(window).resize(function() {
+					canvas.width = window.innerWidth;
+					canvas.height = window.innerHeight;
+					ctx.setTransform(1, 0, 0, 1, window.innerWidth/2, window.innerHeight/2);
+					draw();
+				}).resize();
+
+				var n_points = 5;
+
+				$("#points").spinner({
+					min:1,
+					stop:function() {
+						n_points = $(this).spinner("value");
+						draw();
+					}
+				}).spinner("value",n_points);
+
+				var tau = 2*Math.PI;
+
+				function draw() {
+					ctx.clearRect(-canvas.width/2, -canvas.height/2, canvas.width, canvas.height)
+
+					var r1 = Math.min(canvas.width,canvas.height)*0.45;
+					var r2 = r1*0.5;
+					var a = tau/n_points;
+
+					ctx.beginPath();
+					ctx.moveTo(Math.sin(0)*r1, -Math.cos(0)*r1);
+					for (var i=0; i<n_points; i++) {
+						ctx.lineTo(Math.sin(i*a)*r1, -Math.cos(i*a)*r1);
+						ctx.lineTo(Math.sin(i*a+a/2)*r2, -Math.cos(i*a+a/2)*r2);
+					}
+					ctx.lineTo(Math.sin(0)*r1, -Math.cos(0)*r1);
+
+					ctx.strokeStyle = "#fff";
+					ctx.stroke();
+				}
+
+				draw();
+			})
+		</script>
+	</head>
+	<body>
+		<canvas id="main"></canvas>
+		<div id="controls">
+			<label>Points: <input id="points"></label><br>
+		</div>
+	</body>
+</html>

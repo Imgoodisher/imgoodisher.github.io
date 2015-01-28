@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<style>
+			@import url("//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css");
+
+			html {
+				background-color:#000;
+				font-family:monospace;
+			}
+
+			canvas {
+				position:fixed;
+				top:0px;
+				left:0px;
+			}
+
+			#controls {
+				color:white;
+				position:fixed;
+				top:10px;
+				left:10px;
+				z-index:2;
+			}
+		</style>
+		<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+		<script src="//jqueryui.com/resources/demos/external/jquery.mousewheel.js"></script>
+		<script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+		<script>
+			$(function() {
+				var canvas = document.getElementById("main");
+				var ctx = canvas.getContext("2d");
+
+				$(window).resize(function() {
+					canvas.width = window.innerWidth;
+					canvas.height = window.innerHeight;
+				}).resize();
+
+				var n_balls = 50;
+				var n_waves = 3;
+				var speed = 5;
+
+				$("#balls").spinner({
+					min:1,
+					stop:function() {
+						n_balls = $(this).spinner("value");
+					}
+				}).spinner("value",n_balls);
+				$("#waves").spinner({
+					min:0,
+					stop:function() {
+						n_waves = $(this).spinner("value");
+					}
+				}).spinner("value",n_waves);
+				$("#speed").spinner({
+					min:0,
+					stop:function() {
+						speed = $(this).spinner("value");
+					}
+				}).spinner("value",speed)
+
+				var tau = 2*Math.PI;
+				var t = 0;
+				var last_update = Date.now();
+
+				setInterval(function() {
+					var now = Date.now();
+					var dt = (now-last_update)/1000
+					last_update = now;
+
+					ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+					t += dt*speed/10; t %= tau;
+
+					function color(n) {
+						if (n<0) {
+							n = -n*10;
+							var g = Math.floor((2-n)*128);
+							var b = Math.floor((n)*128);
+							return "#00"+(g<16?"0":"")+g.toString(16)+(b<16?"0":"")+b.toString(16);
+						} else {
+							n*=10
+							var r = Math.floor((n)*128);
+							var g = Math.floor((2-n)*128);
+							return "#"+(r<16?"0":"")+r.toString(16)+(g<16?"0":"")+g.toString(16)+"00";
+						}
+					}
+
+					for (var i=0; i<n_balls; i++) {
+						var a = (tau/n_balls)*i;
+						var r = Math.sin((t+a)*n_waves)/5
+						var c = color(r);
+						r = r*(canvas.height*(2/3))+(canvas.height/4);
+						var x = Math.cos(a)*r+window.innerWidth/2;
+						var y = Math.sin(a)*r+window.innerHeight/2;
+						ctx.fillStyle = c;
+						ctx.beginPath();
+						ctx.arc(x, y, 10, 0, tau);
+						ctx.fill();
+					}
+				}, 50)
+			})
+		</script>
+	</head>
+	<body>
+		<canvas id="main"></canvas>
+		<div id="controls">
+			<label>Balls: <input id="balls"></label><br>
+			<label>Waves: <input id="waves"></label><br>
+			<label>Speed: <input id="speed"></label><br>
+		</div>
+	</body>
+</html>

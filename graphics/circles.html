@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<style>
+			html, body {
+				background-color: #000;
+			}
+
+			canvas {
+				position:fixed;
+				top:0px;
+				left:0px;
+			}
+		</style>
+		<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+		<script>$(function(){
+
+			var canvas = document.getElementById("main");
+			var ctx = canvas.getContext("2d");
+
+			$(window).resize(function() {
+				canvas.width = window.innerWidth;
+				canvas.height = window.innerHeight;
+				ctx.setTransform(1, 0, 0, 1, window.innerWidth/2, window.innerHeight/2)
+				ctx.strokeStyle = "#fff";
+			}).resize();
+
+			setInterval(function() {
+				ctx.clearRect(-window.innerWidth/2, -window.innerHeight/2, window.innerWidth, window.innerHeight);
+
+				var origin = {x:0, y:0}
+				var radius = Math.min(window.innerWidth, window.innerHeight)/2*0.9;
+				var t = Date.now()/500;
+
+				for (var i=0; i<50; i++) {
+					ctx.beginPath();
+					ctx.arc(origin.x, origin.y, radius, 0, 2*Math.PI)
+					ctx.stroke();
+
+					var new_radius = radius*0.9;
+					origin.x += Math.cos(t + (i%2==0?Math.PI:0)) * (radius-new_radius);
+					origin.y += Math.sin(t + (i%2==0?Math.PI:0)) * (radius-new_radius);
+
+					radius = new_radius
+				}
+			}, 50);
+
+		})</script>
+	</head>
+	<body>
+		<canvas id="main"></canvas>
+	</body>
+</html>

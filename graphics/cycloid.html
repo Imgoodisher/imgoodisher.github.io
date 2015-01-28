@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<style>
+			@import url("//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css");
+
+			html {
+				background-color:#000;
+				font-family:monospace;
+			}
+
+			canvas {
+				position:fixed;
+				top:0px;
+				left:0px;
+			}
+
+			#controls {
+				color:white;
+				position:fixed;
+				top:10px;
+				left:10px;
+				z-index:2;
+			}
+
+			a {
+				text-decoration:none;
+			}
+		</style>
+		<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+		<script src="//jqueryui.com/resources/demos/external/jquery.mousewheel.js"></script>
+		<script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+		<script>
+			$(function() {
+				//$(document).tooltip({track:true});
+
+				var canvas = document.getElementById("main");
+				var ctx = canvas.getContext("2d");
+
+				t = 0;
+				speed = 1;
+				type = "ht";
+				//last_point;
+				//size;
+				vars = {};
+
+				types = {
+					ht:{
+						vars: {"R":5, "r":3, "d":5},
+						step:function(t) {
+							return [
+								(vars.R-vars.r)*Math.cos(t)+vars.d*Math.cos(((vars.R-vars.r)/vars.r)*t),
+								(vars.R-vars.r)*Math.sin(t)-vars.d*Math.sin(((vars.R-vars.r)/vars.r)*t)
+							]
+						},
+						size:function() {
+							return vars.R+(vars.d-vars.r/2)
+						},
+						name:"Hypotrochoid",
+					},
+					et:{
+						vars: {"R":3, "r":1, "d":0.5},
+						step:function() {
+							return [
+								(vars.R-vars.r)*Math.cos(t)-vars.d*Math.cos(((vars.R+vars.r)/vars.r)*t),
+								(vars.R-vars.r)*Math.sin(t)-vars.d*Math.sin(((vars.R+vars.r)/vars.r)*t)
+							]
+						},
+						size:function() {
+							return vars.R+(vars.d+vars.r/2)
+						},
+						name:"Epitrochoid",
+					},
+					hc:{
+						vars: {"r":1, "k":3},
+						step:function() {
+							R = vars.r*vars.k
+							return [
+								(R-vars.r)*Math.cos(t)+vars.r*Math.cos(((R-vars.r)/vars.r)*t),
+								(R-vars.r)*Math.sin(t)-vars.r*Math.sin(((R-vars.r)/vars.r)*t)
+							]
+						},
+						size:function() {
+							return vars.r*vars.k
+						},
+						name:"Hypocycloid",
+					},
+					ec:{
+						vars: {"r":1, "k":3},
+						step:function() {
+							R = vars.r*vars.k
+							return [
+								(R+vars.r)*Math.cos(t)-vars.r*Math.cos(((R+vars.r)/vars.r)*t),
+								(R+vars.r)*Math.sin(t)-vars.r*Math.sin(((R+vars.r)/vars.r)*t)
+							]
+						},
+						size:function() {
+							return vars.r*vars.k + vars.r*2
+						},
+						name:"Epicycloid",
+					},
+				}
+
+				$("#type").change(function() {
+					type = $(this).val();
+
+					$("#suboptions").empty()
+
+					for (var i in types[type].vars) {
+						var label = $("<label>"+i+": </label>");
+						var input = $("<input>")
+						label.append(input).append("<br>").appendTo("#suboptions")
+						input.attr("v", i).spinner({
+							step:0.1,
+							stop:function() {
+								var v = $(this).attr("v");
+								vars[v] = $(this).spinner("value");
+								reset();
+							}
+						}).spinner("value", types[type].vars[i])
+					}
+					vars = types[type].vars
+
+					$("#about-type").attr("href", "http://en.wikipedia.org/wiki/"+types[type].name);
+
+					reset();
+				}).change();
+
+				function reset() {
+					t = 0;
+					last_point = types[type].step(0);
+					size = types[type].size();
+					ctx.clearRect(-canvas.width/2, -canvas.height/2, canvas.width, canvas.height)
+					ctx.setTransform(1, 0, 0, 1, window.innerWidth/2, window.innerHeight/2);
+				}
+
+				$("#speed").spinner({
+					min:0,
+					step:1,
+					stop:function() {
+						speed = $(this).spinner("value");
+					}
+				}).spinner("value",speed);
+
+				$(window).resize(function() {
+					canvas.width = window.innerWidth;
+					canvas.height = window.innerHeight;
+					ctx.setTransform(1, 0, 0, 1, window.innerWidth/2, window.innerHeight/2);
+					ctx.strokeStyle = "#fff";
+					reset();
+				}).resize();
+
+				ctx.strokeStyle = "#fff";
+
+				setInterval(function() {
+					for (var i=0; i<speed; i++) {
+						t += 0.02
+
+						this_point = types[type].step(t)
+
+						ctx.beginPath();
+						var s = Math.min(canvas.width, canvas.height)/size/2.1
+						ctx.moveTo(last_point[0]*s, last_point[1]*s);
+						ctx.lineTo(this_point[0]*s, this_point[1]*s);
+						ctx.stroke();
+
+						last_point = this_point;
+					}
+				}, 0)
+			})
+		</script>
+	</head>
+	<body>
+		<canvas id="main"></canvas>
+		<div id="controls">
+			<div id="suboptions">
+				
+			</div>
+			<label>Speed: <input id="speed"></label><br>
+			<label>Type: <select id="type" class="ui-spinner ui-widget ui-widget-content ui-corner-all">
+				<option value="ht">Hypotrochoid</option>
+				<option value="et">Epitrochoid</option>
+				<option value="hc">Hypocycloid</option>
+				<option value="ec">Epicycloid</option>
+			</select> <a href="http://en.wikipedia.org/wiki/Hypotrochoid" id="about-type">[?]</a><br>
+		</div>
+	</body>
+</html>
