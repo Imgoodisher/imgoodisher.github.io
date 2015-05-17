@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<link href='http://fonts.googleapis.com/css?family=Roboto:100' rel='stylesheet' type='text/css'>
+		<style>
+			html, body, #container {
+				width: 100%;
+				height: 100%;
+				position: fixed;
+				top: 0px;
+				left: 0px;
+			}
+
+			#container {
+				position: relative;
+				top: -5%;
+				font-size: 32px;
+			}
+
+			#text {
+				font-family: 'Roboto',monospace;
+				text-align: center;
+				position: absolute;
+				left: 50%;
+				top: 50%;
+				transform: translate(-50%, -50%);
+				-o-transform: translate(-50%, -50%);
+				-ms-transform: translate(-50%, -50%);
+				-moz-transform: translate(-50%, -50%);
+				-webkit-transform: translate(-50%, -50%);
+			}
+		</style>
+		<script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
+		<script>
+			var fixedtime;
+
+			function pad(n, digits, base) {
+				return String("0".repeat(digits) + n.toString(base)).slice(-digits)
+			}
+
+			function rgb(h, s, v) {
+				var c = v*s;
+				var x = c*(1-Math.abs((h/60)%2-1));
+				var m = v-c;
+				var r, g, b;
+
+
+					 if (h < 60)  r=c, g=x, b=0;
+				else if (h < 120) r=x, g=c, b=0;
+				else if (h < 180) r=0, g=c, b=x;
+				else if (h < 240) r=0, g=x, b=c;
+				else if (h < 300) r=x, g=0, b=c;
+				else 			  r=c, g=0, b=x;
+
+
+				return "#"+
+					pad(~~((r+m)*255),2,16)+
+					pad(~~((g+m)*255),2,16)+
+					pad(~~((b+m)*255),2,16);
+			}
+
+			function update() {
+				var d = new Date(fixedtime || Date.now());
+				var now = d.getTime()-d.getTimezoneOffset()*60000;
+				var col = rgb((now/240000+240)%360, 1, 1);
+
+				$("#time").text((d.getHours()%12||12) + ":" + pad(d.getMinutes(),2) + ":" + pad(d.getSeconds(),2) + " " + (d.getHours()<12?"AM":"PM"));
+				$("#date").text((d.getMonth()+1) + "/" + pad(d.getDate(),2) + "/" + pad(d.getFullYear(),2));
+				$("#color").text(col);
+
+				$("body").css("background-color", col);
+			}
+
+			$(function() {
+				setInterval(update, 100);
+			})
+		</script>
+	</head>
+	<body>
+		<div id="container">
+			<div id="text">
+				<div id="time">00:00:00</div>
+				<div id="date">00/00/00</div>
+				<div id="color">#FFFFFF</div>
+			</div>
+		</div>
+	</body>
+</html>
