@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<style>
+
+		</style>
+		<script src="js/lib/jquery.js"></script>
+		<script>
+
+			var questions = {
+				"Greece" : [
+					{
+						prompt:"What geographic feature does Greece mainly consist of?",
+						answers:[
+							"Mountains",
+							"Plains",
+							"Lakes",
+							"Forests",
+						],
+						correctAnswer:0,
+					},
+					{
+						prompt:"What is a polis?",
+						answers:[
+							"An island",
+							"A small town",
+							"A form of government",
+							"A city-state",
+						],
+						correctAnswer:3,
+					},
+					{
+						prompt:"What type of government was used in Athens?",
+						answers:[
+							"Monarch",
+							"Democracy",
+							"Oligarchy",
+							"Aristocracy",
+						],
+						correctAnswer:1,
+					},
+					{
+						prompt:"Which was not a Greek polis?",
+						answers:[
+							"Sparta",
+							"Athens",
+							"Crete",
+							"Olympia",
+						],
+						correctAnswer:2,
+					},
+					{
+						prompt:"Who leads in an Oligarchy?",
+						answers:[
+							"A King",
+							"A group of landowning people",
+							"A few powerful people",
+							"The people",
+						],
+						correctAnswer:2,
+					},
+				],
+				"Ancient Rome" : [
+					{
+						prompt:"What form of government was Ancient Rome?",
+						answers:[
+							"Democracy",
+							"Theocracy",
+							"Dictatorship",
+							"Republic",
+						],
+						correctAnswer:3,
+					},
+					{
+						prompt:"Who did Rome fight in the Punic Wars?",
+						answers:[
+							"Carthage",
+							"Greece",
+							"Gaul",
+							"Byzantium",
+						],
+						correctAnswer:0,
+					},
+					{
+						prompt:"Who lead the Romans in the Punic Wars?",
+						answers:[
+							"Hannibal",
+							"Julius Caesar",
+							"Scipio",
+							"Marcus Aurelius",
+						],
+						correctAnswer:2,
+					},
+					{
+						prompt:"Who was the first emperor of Rome?",
+						answers:[
+							"Julius Caesar",
+							"Augustus Caesar",
+							"Marcus Aurelius",
+							"Tiberius",
+						],
+						correctAnswer:1,
+					},
+					{
+						prompt:"Who was not a member of the First Triumvirate?",
+						answers:[
+							"Julius Caesar",
+							"Crassus",
+							"Pompey",
+							"Marc Antony",
+						],
+						correctAnswer:3 ,
+					},
+				],
+				"Middle Ages": [
+					{
+						prompt:"Which of the following is another name for the Middle Ages?",
+						answers:[
+							"Classical",
+							"Medieval",
+							"Renaissance",
+							"Neolithic",
+						],
+						correctAnswer:1,
+					},
+					{
+						prompt:"Who is the head of the Catholic church?",
+						answers:[
+							"The Pope",
+							"The Patriarch",
+							"The King",
+							"The Emperor",
+						],
+						correctAnswer:0,
+					},
+					{
+						prompt:"Which pope started the Crusades?",
+						answers:[
+							"Francis",
+							"Leo III",
+							"Urban II",
+							"John II",
+						],
+						correctAnswer:2,
+					},
+					{
+						prompt:"Who was crowned emperor by Pope Leo III?",
+						answers:[
+							"Charles Martel",
+							"William the Conqueror",
+							"Clovis",
+							"Charlemage",
+						],
+						correctAnswer:3,
+					},
+					{
+						prompt:"What was a person who was granted land in the feudal system called?",
+						answers:[
+							"Serf",
+							"Vassal",
+							"Fief",
+							"Frank",
+						],
+						correctAnswer:1,
+					},
+				],
+				"Renaissance":[
+					{
+						prompt:"What does 'Renaissance' mean?",
+						answers:[
+							"Enlightenment",
+							"Rebirth",
+							"Learning",
+							"None of the above",
+						],
+						correctAnswer:1,
+					},
+					{
+						prompt:'Who wrote <span style="font-style:italic">The Prince</span>?',
+						answers:[
+							"Petrarch",
+							"Leonardo da Vinci",
+							"Sir Thomas More",
+							"Niccolo Machiavelli",
+						],
+						correctAnswer:3,
+					},
+					{
+						prompt:"Where did the Renaissance begin?",
+						answers:[
+							"Rome",
+							"Constantinople",
+							"Northern Italy",
+							"France",
+						],
+						correctAnswer:2,
+					},
+					{
+						prompt:"What did Humanism value?",
+						answers:[
+							"The Individual",
+							"The Church",
+							"Wealth",
+							"Friendship",
+						],
+						correctAnswer:0,
+					},
+					{
+						prompt:"Who is known as the 'father of Humanism'?",
+						answers:[
+							"Michelangelo",
+							"Erasmus",
+							"Sir Thomas More",
+							"Petrarch",
+						],
+						correctAnswer:3,
+					},
+				]
+			};
+
+			$(function() {
+				for (var topic in questions) {
+					console.log(topic);
+					$("<h2>").html(topic).appendTo(document.body);
+
+					for (var q in questions[topic]) {
+						$("<p>").css("text-decoration", "underline").html(questions[topic][q].prompt).appendTo(document.body);
+
+						for (var i in questions[topic][q].answers) {
+							var a = $("<p>").html(questions[topic][q].answers[i]).appendTo(document.body);
+							if (i == questions[topic][q].correctAnswer) {
+								a.css("font-weight", "bold");
+							}
+						}
+						$("<br>").appendTo(document.body);
+					}
+					$("<br>").appendTo(document.body);
+					$("<br>").appendTo(document.body);
+				}
+			})
+
+		</script>
+	</head>
+	<body></body>
+</html>

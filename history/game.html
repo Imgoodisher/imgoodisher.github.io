@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<style>
+			@font-face {
+				font-family: 'Play';
+				font-style: normal;
+				font-weight: 400;
+				src: local('Play'), url(http://themes.googleusercontent.com/static/fonts/play/v4/-SXnV4mZjf4oh1IBw13WZw.woff) format('woff');
+			}
+
+			#main {
+				position:fixed;
+				top:0px;
+				left:0px;
+			}
+
+			* {
+				-webkit-touch-callout: none;
+				-webkit-user-select: none;
+				-khtml-user-select: none;
+				-moz-user-select: none;
+				-ms-user-select: none;
+				user-select: none;
+			}
+
+			.tooltip-area {
+				position:fixed;
+			}
+
+			.tooltip {
+				font-family: Play;
+				position: fixed;
+				background-color:#444;
+				color:#bbb;
+				padding:8px;
+				border:1px solid #222;
+				border-radius:4px;
+				min-width:100px;
+			}
+
+			.white {
+				color:#fff;
+			}
+
+			.red {
+				color:#f00;
+			}
+
+			.green {
+				color:#0f0;
+			}
+
+
+			#reinforcements {
+				font-family:Play;
+				color:#fff;
+				position:fixed;
+				left:0px;
+				right:0px;
+				top:0px;
+				padding:8px;
+				text-align:center;
+			}
+
+
+			#button-container1 {
+				text-align:center;
+				left:0px;
+				right:0px;
+				position:fixed;
+			}
+			#button-container2 {
+				display:inline-block;
+				text-align:right;
+				width:300px;
+			}
+			#questionbutton {
+				font-family: Play;
+				text-align:center;
+
+				width:8px;
+				height:20px;
+				padding:0px 6px;
+				display:inline-block;
+				
+				border:1px solid #222;
+				border-radius:4px;
+
+				background-color:#444;
+				color:#bbb;
+
+				cursor:pointer;
+			}
+			#questionbutton:hover {
+				background-color:#666;
+				border-color:#444;
+			}
+
+
+			#question {
+				position:fixed;
+				top:0px;
+				bottom:0px;
+				left:0px;
+				right:0px;
+
+				background-color:#222;
+				color:#fff;
+				font-family:Play;
+
+				text-align:center;
+
+				font-size:1.25em;
+			}
+			#question-column {
+				display:inline-block;
+				min-width:200px;
+				margin-top:24px;
+
+				text-align:left;
+			}
+			#topic {
+				margin-bottom:24px;
+			}
+			#prompt {
+
+			}
+			#answers {
+				list-style-type:upper-alpha;
+			}
+			#answers li {
+				cursor:pointer;
+			}
+			#answers:not(.answered) li:hover {
+				color:#aaa;
+			}
+
+			#alert {
+				font-family:Play;
+				font-size:8em;
+				text-align:center;
+				color:#666;
+				text-shadow:4px 4px #000;
+
+				position:fixed;
+				top:100px;
+				left:0px;
+				right:0px;
+			}
+
+		</style>
+		<style>
+			/* http://codepen.io/SaschaSigl/pen/lJmkK */
+			html, body {
+				width: 100%;
+				height: 100%;
+			}
+
+			body {
+				background: #222;
+				overflow:hidden;
+			}
+
+			.wait {width: 20px; height: 10px; border-radius: 5px; background: #666666; top: 0; bottom: 0; left: 0; right: 0; margin: auto; position: fixed; -webkit-animation-timing-function: linear; animation-timing-function: linear; -webkit-animation: wait 1s infinite; animation: wait 1s infinite; -webkit-transform-origin: center center; -ms-transform-origin: center center; transform-origin: center center; } .wait::before {content: ''; display: block; -webkit-transform-origin: center center; -ms-transform-origin: center center; transform-origin: center center; width: 10px; height: 10px; border-radius: 5px; background: #666666; top: 0; bottom: 0; left: 8px; right: 0; margin: auto; position: fixed; -webkit-animation-timing-function: linear; animation-timing-function: linear; opacity: .5; -webkit-animation: before 1s infinite; animation: before 1s infinite; } .wait::after {content: ''; display: block; -webkit-transform-origin: center center; -ms-transform-origin: center center; transform-origin: center center; width: 10px; height: 10px; border-radius: 5px; background: #666666; top: 0; bottom: 0; left: 15px; right: 0; margin: auto; position: fixed; -webkit-animation-timing-function: linear; animation-timing-function: linear; opacity: .25; -webkit-animation: after 1s infinite; animation: after 1s infinite; }
+			@-webkit-keyframes wait {0% {width: 20px; -webkit-transform: translateX(50px); transform: translateX(50px); } 50% {width: 20px; -webkit-transform: translateX(-50px); transform: translateX(-50px); } 100% {width: 20px; -webkit-transform: translateX(50px); transform: translateX(50px); } } @keyframes wait {0% {width: 20px; -webkit-transform: translateX(50px); transform: translateX(50px); } 50% {width: 20px; -webkit-transform: translateX(-50px); transform: translateX(-50px); } 100% {width: 20px; -webkit-transform: translateX(50px); transform: translateX(50px); } } @-webkit-keyframes after {0% {-webkit-transform: translateX(8px); transform: translateX(8px); } 75% {-webkit-transform: translateX(-30px); transform: translateX(-30px); } 100% {-webkit-transform: translateX(8px); transform: translateX(8px); } } @keyframes after {0% {-webkit-transform: translateX(8px); transform: translateX(8px); } 75% {-webkit-transform: translateX(-30px); transform: translateX(-30px); } 100% {-webkit-transform: translateX(8px); transform: translateX(8px); } } @-webkit-keyframes before {0% {-webkit-transform: translateX(8px); transform: translateX(8px); } 75% {-webkit-transform: translateX(-16px); transform: translateX(-16px); } 100% {-webkit-transform: translateX(8px); transform: translateX(8px); } } @keyframes before {0% {-webkit-transform: translateX(8px); transform: translateX(8px); } 75% {-webkit-transform: translateX(-16px); transform: translateX(-16px); } 100% {-webkit-transform: translateX(8px); transform: translateX(8px); } } </style>
+
+		<script data-main="js/Main" src="js/lib/require.js"></script>
+	</head>
+	<body>
+		<div id="loading" class="wait"></div>
+		<canvas id="main"></canvas>
+		<div id="reinforcements"></div>
+		<div id="button-container1"><div id="button-container2"><div id="questionbutton">+</div></div></div>
+		<div id="question" style="display:none">
+			<div id="question-column">
+				<h3 id="topic"></h3>
+				<div id="prompt"></div>
+				<ol id="answers"></ol>
+			</div>
+		</div>
+		<div id="alert"></div>
+	</body>
+</html>

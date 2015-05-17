@@ -1,0 +1,17 @@
+AI:					  83
+AssetLoader:		  86
+ClickableItem:		  50
+Core:				 117
+Entity:				 113
+GameObject:			  53
+Gui:				  85
+Items:				 116
+Main:				 145
+Map:				  37
+Player:				  87
+QuestionManager:	 296
+SimpleImage:		  29
+Spritesheet:		  46
+Tooltip:			  65
+
+TOTAL:				1048

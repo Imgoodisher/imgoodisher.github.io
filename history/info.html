@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<style>
+			@font-face {
+				font-family: 'Play';
+				font-style: normal;
+				font-weight: 400;
+				src: local('Play'), url(http://themes.googleusercontent.com/static/fonts/play/v4/-SXnV4mZjf4oh1IBw13WZw.woff) format('woff');
+			}
+
+			body {
+				font-family: Play;
+				background-color:#ddd;
+				color:#333;
+				text-align:center;
+			}
+
+			h2 {
+				border-bottom: 1px solid #333;
+			}
+
+			
+			#column {
+				width:800px;
+				background-color:#bbb;
+				padding:8px;
+				border-radius:4px;
+				display:inline-block;
+			}
+
+			#content {
+				text-align:left;
+			}
+
+
+			.img-container {
+				text-align:center;
+				margin: 16px 0px;
+			}
+
+			.red {
+				color:#ff0000;
+			}
+			.green {
+				color:#00ff00;
+			}
+			.blue {
+				color:#0026ff;
+			}
+			.yellow {
+				color:#ffd800;
+			}
+
+			.italic {
+				font-style:italic;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="column">
+			<h1>Castle Siege</h1>
+			<div id="content">
+				<h2>Story</h2>
+				<p>
+					You are a knight in service of Lord John. He has decied to attack the neighboring fief of Lord English to, supposedly, stop him from committing villainous acts (though everyone knows John just wants the land). Lord John is a terrible strategist however, and has sent you with only 50 knights to attack a castle with 500 knights. There are a few fiefs that you are good terms with you that could lend you a hand, but considering Lord John's "great" strategy skills they aren't willing to give you their help until you can prove that you are smarter than John by answering history questions.
+				</p>
+				<h2>How to Play</h2>
+				<h3>Controls</h3>
+				<p>
+					Movement: <span class="italic">WASD</span><br>
+					Use Weapon: <span class="italic">Click</span><br>
+					Move Though Inventory: <span class="italic">Scroll Wheel</span>
+				</p>
+				<h3>Inventory &amp; Items</h3>
+				<p>
+					<div class="img-container"><img src="assets/img/inventory.png"></div>
+					The three boxes at the bottom of the screen represent your inventory and equipped items. The top-left box is your <span class="red">weapon</span>, the top-right box is your <span class="blue">armor</span> and the middle box is your <span class="yellow">inventory</span>. Clicking on the <span class="yellow">inventory</span> box will make you equip whatever is in the box whether it is armor or a weapon.
+				</p>
+				<p>
+					Hovering over an item will cause a tooltip to show up that shows the stats on the item.
+					<div class="img-container"><img src="assets/img/tooltip1.png"></div>
+					If the item is in the <span class="yellow">inventory</span> box and you have an item of the same type equipped, it will show the difference in stats between that item and the currently equipped item.
+					<div class="img-container"><img src="assets/img/tooltip2.png"></div>
+				</p>
+				<p>
+					Sometimes knights will drop their armor or weapon when they die, if they do you can pick it up by clicking on the dropped item. It will be placed in your <span class="yellow">inventory</span> where you can then equip it if you want.
+					<div class="img-container"><img src="assets/img/droppeditems.png"></div>
+				</p>
+				<h3>Reinforcements</h3>
+				<p>
+					Both your team and the enemy team have a limited number of reinforcements. If your allied reinforcements reaches 0 you lose the game. If the enemy reinforcements reaches 0 you win. Because Lord John is such a bad planner you only have 50 reinforcements while the enemies have 500. However, by clicking on the '+' button at the top right of the screen you can answer questions to get more reinforcements.
+					<div class="img-container"><img src="assets/img/reinforcements.png"></div>
+					Each question you answer correctly will give you 25 more reinforcements and give the player +1 INT (see next section).
+				</p>
+				<h3>Stats</h3>
+				<p>
+					Every knight in the game has a set of stats representing their power. The four stats are strengh (STR), agility (AGI), defense (DEF), and intellect (INT). Each stat provides a different boost to the knight.
+				</p>
+				<p>
+					STR: Increases melee (sword) damage.<br>
+					AGI: Increases ranged (bow) damage and movement speed.<br>
+					DEF: Decreases damage taken.<br>
+					INT: Provides a boost to all other stats and increases health regen.<br>
+				</p>
+				<p>
+					Your stats are calculated based on your equipped weapon and armor. The player can also increase their INT stat by answering questions.
+				</p>
+			</div>
+		</div>
+	</body>
+</html>
