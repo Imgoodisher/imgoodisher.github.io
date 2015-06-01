@@ -76,7 +76,7 @@ requirejs([
 				Player.entity.weapon = new Item(Item.items.sword, true)
 
 
-				var allyforces = 50;
+				var allyforces = 500;
 				var enemyforces = 500;
 
 				var $reinforcements = $("#reinforcements")
