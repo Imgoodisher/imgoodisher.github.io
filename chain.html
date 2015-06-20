@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<style>
+			canvas {
+				position: fixed;
+				top: 0px;
+				left: 0px;
+			}
+		</style>
+		<script src="lib/QuadTree.js"></script>
+		<script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
+		<script>
+			$(function() {
+
+
+				var canvas = $("canvas")[0];
+				var ctx = canvas.getContext("2d");
+
+				circles = [];
+				var tree = new QuadTree({
+					x:0, y:0,
+					width: window.innerWidth, height: window.innerHeight
+				}, true);
+
+				var dt;
+
+				var types = {
+					normal:{
+						r:10,
+						collide: function(c, c2) {
+							var vx = c2.vx*1.1;
+							var vy = c2.vy+1.1;
+							return [new Circle(c.x+vx*dt, c.y+vy*dt, vx, vy)];
+						}
+					}
+				}
+
+				canvas.width = window.innerWidth;
+				canvas.height = window.innerHeight;
+
+				function Circle(x, y, vx, vy) {
+					this.x = x || Math.random()*canvas.width;
+					this.y = y || Math.random()*canvas.height;
+
+					var angle = Math.random()*2*Math.PI;
+					this.vx = vx || Math.cos(angle)*200;
+					this.vy = vy || Math.sin(angle)*200;
+
+					this.type = types.normal;
+
+					this.r = this.type.r;
+				}
+				Circle.prototype.update = function(dt) {
+					this.x += this.vx*dt;
+					this.y += this.vy*dt;
+
+					if (this.x < this.type.r) {
+						this.x = this.type.r+1;
+						this.vx *= -1;
+					}
+					if (this.y < this.type.r) {
+						this.y = this.type.r+1;
+						this.vy *= -1;
+					}
+					if (this.x+this.type.r > canvas.width) {
+						this.x = canvas.width-this.type.r-1;
+						this.vx *= -1;
+					}
+					if (this.y+this.type.r > canvas.height) {
+						this.y = canvas.height-this.type.r-1;
+						this.vy *= -1;
+					}
+				}
+				Circle.prototype.draw = function() {
+					ctx.strokeStyle = "#fff";
+					ctx.beginPath();
+					ctx.arc(this.x, this.y, this.type.r, 0, 2*Math.PI);
+					ctx.stroke();
+				}
+				Circle.prototype.collide = function(other) {
+					if (this.type.collide) return this.type.collide(this, other) || [];
+					else return [];
+				}
+
+
+
+
+				var lastupdate = Date.now();
+				function update() {
+					var now = Date.now();
+					dt = (now-lastupdate)/1000;
+					lastupdate = now;
+
+					for (var i=0; i<circles.length; i++) {
+						circles[i].update(dt);
+					}
+
+					tree.clear();
+					tree.insert(circles);
+
+					var toRemove = [];
+					var toAdd = [];
+
+					for (var i=0; i<circles.length; i++) {
+						var a = circles[i];
+						var items = tree.retrieve(a);
+
+						for (var j=0; j<items.length; j++) {
+							var b = items[j];
+
+							if (a == b) continue;
+
+							// http://gamedev.stackexchange.com/questions/20516/ball-collisions-sticking-together
+
+							var xdist = a.x - b.x;
+							var ydist = a.y - b.y;
+							var distsq = xdist*xdist + ydist*ydist;
+
+							if (distsq < (a.r + b.r)*(a.r + b.r)) {
+
+								var vx = b.vx - a.vx;
+								var vy = b.vy - a.vy;
+								var dot = xdist*vx + ydist*vy;
+
+								if (dot > 0) {
+
+									var scale = dot / distsq
+									var xcol = xdist * scale;
+									var ycol = ydist * scale;
+
+									a.vx += xcol;
+									a.vy += ycol;
+									b.vx -= xcol;
+									b.vy -= ycol;
+
+									/*if (toRemove.indexOf(b) == -1) {
+										toAdd = toAdd.concat(b.collide(a));
+										toRemove.push(b);
+									}
+									if (toRemove.indexOf(a) == -1) {
+										toAdd = toAdd.concat(a.collide(b));
+										toRemove.push(a);
+									}*/
+								}
+							}
+						}
+					}
+
+					/*for (var i=0; i<toRemove.length; i++) {
+						var ind = circles.indexOf(toRemove[i]);
+						if (ind != -1) {
+							circles.splice(ind, 1);
+						}
+					}
+					circles = circles.concat(toAdd);*/
+				}
+
+				function draw() {
+					ctx.fillStyle = "#000";
+					ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+					for (var i=0; i<circles.length; i++) {
+						circles[i].draw();
+					}
+				}
+
+
+				for (var i=0; i<30; i++) {
+					circles.push(new Circle());
+				}
+
+				setInterval(function() {
+					update();
+					draw();
+				}, 20);
+
+			});
+		</script>
+	</head>
+	<body>
+		<canvas></canvas>
+	</body>
+</html>
