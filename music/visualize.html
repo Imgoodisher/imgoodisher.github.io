@@ -48,6 +48,9 @@
 				<input id="urlinput" type="text" value="http://"/> <button id="loadURL">Load</button>
 			</p>
 			<p>
+				<button id="useMic">Use Microphone</button>
+			</p>
+			<p>
 				Currently Loaded: <span id="current"></span>
 			</p>
 			<br>
@@ -61,6 +64,7 @@
 		<audio controls></audio>
 
 		<script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
+		<script src="adapter.js"></script>
 		<script>
 			var canvas1 = $("#canvas1")[0];
 			var ctx1 = canvas1.getContext("2d");
@@ -97,13 +101,15 @@
 			var audio = new (window.AudioContext || window.webkitAudioContext)();
 
 			var audioElem = $("audio")[0];
-			var source = audio.createMediaElementSource(audioElem);
+			var elemSource = audio.createMediaElementSource(audioElem);
+			var userSource;
 
 			var analyser = audio.createAnalyser();
 			analyser.fftSize = 512;
 
-			source.connect(analyser);
+			elemSource.connect(analyser);
 			analyser.connect(audio.destination);
+			var currentSource = "element"
 
 
 			var filename_regex = /[\/\\]([^\/\\]+)$/
@@ -111,12 +117,58 @@
 				var res = filename_regex.exec(this.value);
 				$("#current").text(res ? res[1] : this.value);
 				$(audioElem).attr("src", URL.createObjectURL(this.files[0]));
+
+				if (currentSource != "element") {
+					currentSource = "element";
+					elemSource.disconnect();
+					analyser.disconnect();
+					if (userSource) userSource.disconnect();
+
+					elemSource.connect(analyser);
+					analyser.connect(audio.destination);
+				}
 			});
 
 			$("#loadURL").click(function() {
 				var val = $("#urlinput").val();
 				$("#current").text(val);
 				$(audioElem).attr("src", val);
+
+				if (currentSource != "element") {
+					currentSource = "element";
+					elemSource.disconnect();
+					analyser.disconnect();
+					if (userSource) userSource.disconnect();
+
+					elemSource.connect(analyser);
+					analyser.connect(audio.destination);
+				}
+			})
+
+			$("#useMic").click(function() {
+				$("#current").text("...");
+				navigator.getUserMedia(
+					{
+						audio:true 
+					},
+					function(stream) {
+						$("#current").text("Microphone");
+
+						userSource = audio.createMediaStreamSource(stream);
+						
+						if (currentSource != "user") {
+							currentSource = "user";
+							elemSource.disconnect();
+							analyser.disconnect();
+							userSource.disconnect();
+
+							userSource.connect(analyser);
+						}
+					},
+					function(err) {
+						$("#current").text(err);
+					}
+				)
 			})
 
 			$("#opt_3d").change(function() {
