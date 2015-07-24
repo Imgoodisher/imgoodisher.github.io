@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<style>
+			canvas {
+				position:fixed;
+				top:0px;
+				left:0px;
+			}
+		</style>
+		<script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
+		<script>$(function(){
+
+			function dist(o1, o2) {
+				return Math.sqrt(Math.pow(o1.x - o2.x, 2) + Math.pow(o1.y - o2.y, 2));
+			}
+
+			function pad(n, digits, base) {
+				return String("0".repeat(digits) + n.toString(base)).slice(-digits)
+			}
+
+			function hsv(h, s, v) {
+				var c = v*s;
+				var x = c*(1-Math.abs((h/60)%2-1));
+				var m = v-c;
+				var r, g, b;
+
+
+					 if (h < 60)  r=c, g=x, b=0;
+				else if (h < 120) r=x, g=c, b=0;
+				else if (h < 180) r=0, g=c, b=x;
+				else if (h < 240) r=0, g=x, b=c;
+				else if (h < 300) r=x, g=0, b=c;
+				else 			  r=c, g=0, b=x;
+
+
+				return "#"+
+					pad(~~((r+m)*255),2,16)+
+					pad(~~((g+m)*255),2,16)+
+					pad(~~((b+m)*255),2,16);
+			}
+
+			function weightedRand(o) {
+				var total = 0;
+				for (var i in o) {
+					total += o[i];
+				}
+				var n = Math.random()*total;
+				for (var i in o) {
+					n -= o[i];
+					if (n <= 0) return i;
+				}
+			}
+
+
+			var canvas = $("#main")[0];
+			var ctx = canvas.getContext("2d");
+
+			var mouse = {x:0, y:0}
+			$(window).resize(function() {
+				canvas.width = window.innerWidth;
+				canvas.height = window.innerHeight;
+			}).resize().mousemove(function(e) {
+				mouse.x = e.pageX;
+				mouse.y = e.pageY;
+			});
+
+			missiles = [];
+			var dead_missiles = [];
+
+			var anyMissile = {
+				rainbow: 1,		// +60		= +60
+				bigsplit1: 10,	// +8*10	= +80
+				split: 30,		// +6*30 	= +180
+				timesplit: 30,	// +6*30 	= +180
+				morph: 30,		// +8*30	= +0
+				basic: 750,		// -1		  -500
+			}
+
+			var missile_types = {
+				basic: {
+					vel: 5,
+					turnspeed: 0.1,
+					init: function() {
+						this.life = 300;
+					},
+					update: function() {
+						this.life--;
+						this.color="rgba(0,0,0,"+(this.life/300)+")";
+						if (this.life <= 0) {
+							this.destroy();
+						}
+					},
+					collide: function() {
+						this.destroy();
+					}
+				},
+				split: {
+					vel: 5,
+					turnspeed: 0.1,
+					color: "#0f0",
+					collide: function() {
+						this.destroy();
+						for (var i=0; i<2*Math.PI; i+=Math.PI/3) {
+							missiles.push(new Missile(this.x, this.y, this.r+i, weightedRand(anyMissile)));
+						}
+					}
+				},
+				timesplit: {
+					vel: 5,
+					turnspeed: 0.1,
+					color: "#f00",
+					init: function() {
+						this.life = 120;
+					},
+					update: function() {
+						this.color = this.life%20 < 10 ? "#f00" : "#000";
+						this.life--;
+						if (this.life <= 0) {
+							this.destroy();
+							for (var i=0; i<2*Math.PI; i+=Math.PI/3) {
+								missiles.push(new Missile(this.x, this.y, this.r+i, weightedRand(anyMissile)));
+							}
+						}
+					},
+					collide: function() {
+						this.life = 0;
+						this.type.update.call(this);
+					}
+				},
+				morph: {
+					vel: 5,
+					turnspeed: 0.1,
+					color: "#f0f",
+					collide: function() {
+						this.destroy();
+						missiles.push(new Missile(this.x, this.y, this.r, weightedRand(anyMissile)));
+					}
+				},
+
+				bigsplit1: {
+					vel: 5,
+					nohoming: true,
+					color: "#00f",
+					init: function() {
+						this.life = 20;
+					},
+					update: function() {
+						this.life--;
+						if (this.life <= 0) {
+							this.destroy();
+							missiles.push(new Missile(this.x, this.y, this.r+Math.PI/6, "bigsplit2"));
+							missiles.push(new Missile(this.x, this.y, this.r-Math.PI/6, "bigsplit2"));
+						}
+					}
+				},
+				bigsplit2: {
+					vel: 5,
+					nohoming: true,
+					color: "#00f",
+					init: function() {
+						this.life = 20;
+					},
+					update: function() {
+						this.life--;
+						if (this.life <= 0) {
+							this.destroy();
+							missiles.push(new Missile(this.x, this.y, this.r+Math.PI/6, "bigsplit3"));
+							missiles.push(new Missile(this.x, this.y, this.r-Math.PI/6, "bigsplit3"));
+						}
+					}
+				},
+				bigsplit3: {
+					vel: 5,
+					nohoming: true,
+					color: "#00f",
+					init: function() {
+						this.life = 20;
+					},
+					update: function() {
+						this.life--;
+						if (this.life <= 0) {
+							this.destroy();
+							missiles.push(new Missile(this.x, this.y, this.r+Math.PI/6, "bigsplit4"));
+							missiles.push(new Missile(this.x, this.y, this.r-Math.PI/6, "bigsplit4"));
+						}
+					}
+				},
+				bigsplit4: {
+					vel: 5,
+					nohoming: true,
+					color: "#00f",
+					init: function() {
+						this.life = 20;
+					},
+					update: function() {
+						this.life--;
+						if (this.life <= 0) {
+							this.destroy();
+							missiles.push(new Missile(this.x, this.y, this.r+Math.PI/6, weightedRand(anyMissile)));
+							missiles.push(new Missile(this.x, this.y, this.r-Math.PI/6, weightedRand(anyMissile)));
+						}
+					}
+				},
+
+				rainbow: {
+					vel: 5,
+					turnspeed: 0.1,
+					init: function() {
+						this.h = 0;
+					},
+					update: function() {
+						if (this.life) {
+							this.life--;
+							if (this.life <= 0) {
+								this.destroy();
+							} else {
+								missiles.push(new Missile(this.x, this.y, this.r+this.life*Math.PI/10, "rainbowspawn"));
+							}
+						} else {
+							this.h = (this.h+15)%360;
+							this.color = hsv(this.h, 1, 1);
+						}
+					},
+					collide: function() {
+						this.vel = 0;
+						this.turnspeed = 0;
+						this.nohoming = true;
+						this.life = 60;
+						this.color = "rgba(0,0,0,0)";
+					}
+				},
+				rainbowspawn: {
+					vel:10,
+					nohoming: true,
+					init: function() {
+						this.h = 0;
+						this.life = 20;
+					},
+					update: function() {
+						this.h = (this.h+30)%360;
+						this.color = hsv(this.h, 1, 1);
+						this.life--;
+						if (this.life <= 0) {
+							this.destroy();
+							missiles.push(new Missile(this.x, this.y, this.r, weightedRand(anyMissile)));
+						}
+					},
+				}
+			}
+
+			Missile = function(x, y, r, type) {
+				this.x = x;
+				this.y = y;
+				this.r = r;
+				this.type = missile_types[type];
+				if (this.type.init) {
+					this.type.init.call(this);
+				}
+			}
+			Missile.prototype.update = function() {
+				var vel = this.vel || this.type.vel;
+				var turnspeed = this.turnspeed || this.type.turnspeed;
+
+				this.x += Math.cos(this.r)*vel;
+				this.y += Math.sin(this.r)*vel;
+
+				if (!(this.nohoming || this.type.nohoming)) {
+					var d = dist(this, mouse);
+
+					var goal = Math.atan2((mouse.y+(Math.random()-0.5)*d/50) - this.y, (mouse.x+(Math.random()-0.5)*d/50) - this.x);
+					if (goal > this.r + Math.PI) goal -= 2*Math.PI;
+					if (goal < this.r - Math.PI) goal += 2*Math.PI;
+
+					if (Math.abs(goal - this.r) < turnspeed) {
+						this.r = goal;
+					} else {
+						var dir = goal > this.r ? 1 : -1;
+						this.r = (this.r + turnspeed * dir)%(2*Math.PI);
+					}
+				}
+
+				if (dist(this, mouse) < vel/2 && this.type.collide) {
+					this.type.collide.call(this);
+				} else if (this.type.update) {
+					this.type.update.call(this);
+				}
+			}
+			Missile.prototype.draw = function() {
+				var dx = Math.cos(this.r), dy = Math.sin(this.r);
+				ctx.beginPath();
+				ctx.moveTo(this.x - dx*8, this.y - dy*8);
+				ctx.lineTo(this.x + dx*8, this.y + dy*8);
+				ctx.strokeStyle = this.color || this.type.color || "#000";
+				ctx.lineWidth = 2;
+				ctx.stroke();
+			}
+			Missile.prototype.destroy = function() {
+				dead_missiles.push(this);
+			}
+
+
+			$(canvas).click(function(e) {
+				missiles.push(new Missile(e.pageX, e.pageY, Math.random()*2*Math.PI, "split"));
+			});
+
+
+			function run() {
+				ctx.clearRect(0, 0, canvas.width, canvas.height);
+				for (var i=0; i<missiles.length; i++) {
+					missiles[i].update();
+				}
+				for (var i=0; i<dead_missiles.length; i++) {
+					missiles.splice(missiles.indexOf(dead_missiles[i]), 1);
+				}
+				dead_missiles = [];
+				for (var i=0; i<missiles.length; i++) {
+					missiles[i].draw();
+				}
+				requestAnimationFrame(run);
+			}
+			run();
+
+		});</script>
+	</head>
+	<body>
+		<canvas id="main"></canvas>
+	</body>
+</html>
