@@ -260,7 +260,11 @@
 				for (var t=0; t<2*Math.PI; t+=Math.PI/128) {
 					var w = 0
 					for (var i=0; i<16; i++) {
-						w += Math.sin((t+circleOffsets[i])*i) * ((Math.pow(16, avgfreqs[i]/128)-1)/6*r*0.75/(1+i/4));
+						//                                                 a                          b      c
+						w += Math.sin((t+circleOffsets[i])*i) * ((Math.pow(16, avgfreqs[i]/128)-1)/(i/8+1)*r*0.12);
+						// increase a -> increase in exponential growth of wave size compared to fft data
+						// increase b -> increase size of high frequency waves compared to low frequency waves
+						// increase c -> increase general size of waves
 					}
 					var r2 = r + (w/16)
 					ctx3.lineTo(canvas3.width/2 + Math.cos(t)*r2, canvas3.height/2 + Math.sin(t)*r2)
