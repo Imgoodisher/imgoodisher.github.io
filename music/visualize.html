@@ -191,6 +191,8 @@
 
 			var lastr = 0;
 
+			var cursorVisible = true;
+
 			var wave = new Uint8Array(analyser.fftSize);
 			var freq = new Uint8Array(analyser.frequencyBinCount);
 			function draw() {
@@ -278,7 +280,17 @@
 				}
 
 
-				$(document.body).css("cursor", (Date.now() - lastmousemove < 1000) ? "auto" : "none");
+				if (Date.now() - lastmousemove < 2000) {
+					if (cursorVisible == false) {
+						cursorVisible = true;
+						$(document.body).css("cursor", "auto");
+						$("#options, audio").fadeIn("fast");
+					}
+				} else if (cursorVisible == true)  {
+					cursorVisible = false;
+					$(document.body).css("cursor", "none");
+					$("#options, audio").fadeOut("fast");
+				}
 			}
 			draw()
 		</script>
