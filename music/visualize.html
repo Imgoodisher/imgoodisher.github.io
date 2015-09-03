@@ -32,10 +32,28 @@
 				left:10px;
 				z-index:999;
 				opacity:0.5;
+				font-family:monospace;
+			}
+
+			#options input, #options button {
+				font-family:monospace;
 			}
 
 			#options p {
 				margin: 8px 0px;
+			}
+
+			input[type="url"] {
+				border: 1px solid;
+				padding: 2px;
+			}
+
+			input:valid {
+				border-color:#00ff00;
+			}
+
+			input:invalid {
+				border-color:#ff0000;
 			}
 		</style>
 	</head>
@@ -45,7 +63,7 @@
 				<input id="fileinput" type="file" accept="audio/*"/>
 			</p>
 			<p>
-				<input id="urlinput" type="text" value="http://"/> <button id="loadURL">Load</button>
+				<input id="urlinput" type="url" placeholder="http://"/> <button id="loadURL">Load</button>
 			</p>
 			<p>
 				<button id="useMic">Use Microphone</button>
@@ -61,7 +79,7 @@
 		<canvas id="canvas1"></canvas>
 		<canvas id="canvas2"></canvas>
 		<canvas id="canvas3"></canvas>
-		<audio controls></audio>
+		<audio controls crossorigin="anonymous"></audio>
 
 		<script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
 		<script src="adapter.js"></script>
@@ -97,6 +115,8 @@
 					rotate(canvas2, evt.pageX, evt.pageY, 0);
 					rotate(canvas3, evt.pageX, evt.pageY, 200);
 				}
+			}).keypress(function(evt) {
+				lastmousemove = Date.now();
 			})
 
 
@@ -137,7 +157,7 @@
 			$("#loadURL").click(function() {
 				var val = $("#urlinput").val();
 				$("#current").text(val);
-				$(audioElem).attr("src", val);
+				$(audioElem).attr("src", "http://crossorigin.me/" + val);
 
 				if (currentSource != "element") {
 					currentSource = "element";
