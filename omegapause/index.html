@@ -13,9 +13,10 @@
 
 			* {
 				font-family: "Source Code Pro", monospace;
+				font-weight:300;
 			}
 
-			#center-flex {
+			.center-flex {
 				display: flex;
 				justify-content: center;
 				align-items: center;
@@ -28,14 +29,12 @@
 			#header, #footer {
 				font-size:1.5em;
 				color:#666;
-				font-weight:300;
 			}
 
 			#timer {
 				font-size:3em;
 				padding:0.25em;
 				color:#ddd;
-				font-weight:300;
 			}
 
 			#♑ {
@@ -51,8 +50,11 @@
 				-ms-user-select: none;
 				user-select: none;
 			}
-			#honk, #gamzee {
+			#honk, #gamzee-container {
 				display:none;
+			}
+			#gamzee {
+				height:100%;
 			}
 		</style>
 		<script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
@@ -64,7 +66,7 @@
 			function update() {
 				var elapsed = Date.now() - last_update;
 
-				var sec = 			 elapsed % 60000    / 1000;
+				var sec =            elapsed % 60000    / 1000;
 				var min = Math.floor(elapsed % 3600000  / 60000);
 				var hr  = Math.floor(elapsed % 86400000 / 3600000);
 				var day = Math.floor(elapsed / 86400000);
@@ -78,7 +80,7 @@
 				}
 
 
-				$("#timer").text(day + " day" + (day==1?"":"s") + ", " + hr + " hour" + (hr==1?"":"s") + ", " + min + " minute" + (min==1?"":"s") + ", " + sec + " seconds");
+				$("#timer").text(day + (day==1?" day, ":" days, ") + hr + (hr==1?" hour, ":" hours, ") + min + (min==1?" minute, ":" minutes, ") + sec + " seconds");
 
 				requestAnimationFrame(update);
 			}
@@ -97,29 +99,26 @@
 					}
 					clicks++;
 					var p = Math.pow(clicks/20, 2);
+					// http://stackoverflow.com/a/3080478
+					// 0x222222 -> 0x2b0057
+					$("html, body").css("background-color", "rgb("+Math.floor((0x2b-0x22)*p+0x22)+","+Math.floor((0x00-0x22)*p+0x22)+","+Math.floor((0x57-0x22)*p+0x22)+")");
 
-					var r1 = g1 = b1 = 0x22;
-					var r2 = 0x2b, g2 = 0x00, b2 = 0x57;
-					var dr = r2-r1, 
-						dg = g2-g1, 
-						db = b2-b1;
-
-					$("html, body").css("background-color", "rgb("+Math.floor(dr*p+r1)+","+Math.floor(dg*p+g1)+","+Math.floor(db*p+b1)+")");
-
-					if (clicks == 20) $("#gamzee").show();
+					if (clicks == 20) $("#gamzee-container").show();
 				}
 			})
 
 		})</script>
 	</head>
 	<body>
-		<div id="center-flex">
-			<div id="container">
+		<div class="center-flex">
+			<div>
 				<div id="header">The last Homestuck update was</div>
 				<div id="timer">0 days, 0 hours, 0 minutes, 0.000 seconds</div>
 				<div id="footer">ago</div>
-				<img id="gamzee" src="/omegapause/gamzee.png" style="width:100%"/>
 			</div>
+		</div>
+		<div class="center-flex" id="gamzee-container">
+			<img id="gamzee" src="/omegapause/gamzee.png"/>
 		</div>
 		<div id="♑">♑</div>
 		<audio id="honk" src="/omegapause/honk.mp3"></audio>
