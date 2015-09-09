@@ -5,7 +5,7 @@
 		<link href='https://fonts.googleapis.com/css?family=Source+Code+Pro:300' rel='stylesheet' type='text/css'>
 		<style>
 			html, body {
-				background-color: #222;
+				background-color: #222222;
 				width: 100%;
 				height: 100%;
 				position:fixed;
@@ -96,9 +96,15 @@
 						honk.currentTime = 0;
 					}
 					clicks++;
-					var p = clicks/20;
-					var g = 1-p;
-					$("html, body").css("background-color", "rgb("+Math.floor((g*34+p*43)/2)+","+Math.floor((g*34+p*0)/2)+","+Math.floor((g*34+p*87)/2)+")");
+					var p = Math.pow(clicks/20, 2);
+
+					var r1 = g1 = b1 = 0x22;
+					var r2 = 0x2b, g2 = 0x00, b2 = 0x57;
+					var dr = r2-r1, 
+						dg = g2-g1, 
+						db = b2-b1;
+
+					$("html, body").css("background-color", "rgb("+Math.floor(dr*p+r1)+","+Math.floor(dg*p+g1)+","+Math.floor(db*p+b1)+")");
 
 					if (clicks == 20) $("#gamzee").show();
 				}
