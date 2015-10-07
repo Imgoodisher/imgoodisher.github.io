@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<style>
+			html, body {
+				position:fixed;
+				top:0px;
+				left:0px;
+				width:100%;
+				height:100%;
+				background-color:#222;
+			}
+
+			canvas {
+				position:fixed;
+				top:0px;
+				left:0px;
+			}
+		</style>
+		<script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
+		<script>$(function() {
+
+			var canvas = $("canvas")[0];
+			var ctx = canvas.getContext("2d");
+
+			/*
+				Circle: {radius: number, x: number, y: number}
+				  x/y is of the center of the circle
+			*/
+
+			function drawCircle(circle) {
+				ctx.fillStyle = "#222";
+				ctx.strokeStyle = "#fff";
+
+				ctx.beginPath();
+				ctx.arc(circle.x, circle.y, circle.radius, 0, 2*Math.PI);
+				ctx.fill();
+				ctx.stroke();
+			}
+
+			function drawCircleGraduations(circle, numGraduations, size, number, numberMult) {
+				ctx.strokeStyle = "#fff";
+				ctx.fillStyle = "#fff";
+
+				var angle = (2*Math.PI)/numGraduations;
+				for (var i=0; i<numGraduations; i++) {
+					ctx.beginPath();
+					ctx.moveTo(
+						circle.x - Math.sin(-i*angle) * circle.radius, 
+						circle.y - Math.cos(-i*angle) * circle.radius
+					);
+					ctx.lineTo(
+						circle.x - Math.sin(-i*angle) * (circle.radius*(1-size)), 
+						circle.y - Math.cos(-i*angle) * (circle.radius*(1-size))
+					);
+					ctx.stroke();
+
+					if (number) {
+						ctx.font = Math.floor(circle.radius*(1-size)/12)+"px sans-serif";
+						ctx.textBaseline = "middle";
+						ctx.textAlign = "center";
+
+						ctx.fillText(
+							numberMult ? numberMult * i : i, 
+							circle.x - Math.sin(-i*angle) * (circle.radius*(1-size*2)),
+							circle.y - Math.cos(-i*angle) * (circle.radius*(1-size*2))	
+						);
+					}
+				}
+			}
+
+			// creates a new circle that is within another circle tangent to the point at [angle]
+			function inscribeCircle(circle, angle) {
+				var newRadius = circle.radius*(1/2)
+				return {
+					radius: newRadius,
+					x: circle.x - Math.sin(-angle) * (circle.radius - newRadius),
+					y: circle.y - Math.cos(-angle) * (circle.radius - newRadius)
+				}
+			}
+
+			$(window).resize(function() {
+				canvas.width = window.innerWidth;
+				canvas.height = window.innerHeight;
+			}).resize();
+
+
+			function redraw() {
+				ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+				var now = Date.now() - (new Date().getTimezoneOffset()*60000);
+
+				var ms =           (now) % 1000;
+				var s  =    (now / 1000) % 60;
+				var m  =   (now / 60000) % 60;
+				var h  = (now / 3600000) % 12;
+
+				var mainCircle = {
+					radius: Math.min(canvas.width * 0.95, canvas.height * 0.95)/2, 
+					x: canvas.width / 2, 
+					y: canvas.height / 2
+				};
+				var hourCircle = inscribeCircle(mainCircle, (h/12) * (2*Math.PI));
+				var minCircle = inscribeCircle(hourCircle, (m/60) * (2*Math.PI));
+				var secCircle = inscribeCircle(minCircle, (s/60) * (2*Math.PI));
+				var msCircle = inscribeCircle(secCircle, (ms/1000) * (2*Math.PI));
+
+				drawCircle(mainCircle);
+				drawCircleGraduations(mainCircle, 12, 0.1, true);
+
+				drawCircle(hourCircle);
+				drawCircleGraduations(hourCircle, 60, 0.025);
+				drawCircleGraduations(hourCircle, 12, 0.075, true, 5);
+
+				drawCircle(minCircle);
+				drawCircleGraduations(minCircle, 60, 0.025);
+				drawCircleGraduations(minCircle, 12, 0.075, true, 5);
+
+				drawCircle(secCircle);
+				drawCircleGraduations(secCircle, 10, 0.1);
+
+				drawCircle(msCircle);
+
+
+				ctx.fillStyle = "#fff";
+				ctx.textBaseline = "top";
+				ctx.textAlign = "left";
+				ctx.font = "12px sans-serif";
+				ctx.fillText(Math.floor(h)+":"+(m<10?"0":"")+Math.floor(m)+":"+(s<10?"0":"")+Math.floor(s)+"."+Math.floor(ms), 10, 10);
+
+				requestAnimationFrame(redraw);
+			}
+
+			redraw();
+
+		})</script>
+	</head>
+	<body>
+		<canvas></canvas>
+	</body>
+</html>
