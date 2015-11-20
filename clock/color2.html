@@ -69,9 +69,13 @@
 				var d = new Date(fixedtime || Date.now());
 				var now = d.getTime()-d.getTimezoneOffset()*60000;
 
-				var p = (now / 3600000)%24
-				var n = Math.abs((p/6)%2-1)
-				var ret = rgb(360-(now/87660000-240)%360, p>6&&p<18 ? 0.75-n*0.5 : 0.75, p<6||p>18 ? 1-n*0.75 : 1);
+				var hour = (now / 3600000)%24
+				var n = Math.abs((hour/6)%2-1)
+				var ret = rgb(
+					360-(now/87660000-240)%360, 
+					hour>6&&hour<18 ? 1-n*0.75 : 1, 
+					hour<6||hour>18 ? 1-n*0.75 : 1
+				);
 
 				var col = rgbstring(ret.r, ret.g, ret.b);
 

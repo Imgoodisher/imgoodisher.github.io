@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<style>
+			html, body {
+				position:fixed;
+				top:0px;
+				left:0px;
+				width:100%;
+				height:100%;
+			}
+
+			canvas {
+				position:fixed;
+				top:0px;
+				left:0px;
+			}
+
+			#container {
+				width:150px;
+				height:150px;
+				border-radius:80px;
+				border:4px solid black;
+				position:fixed;
+				background-color:#fff;
+
+				display:flex;
+				justify-content:center;
+				align-items:center;
+			}
+
+			#inner {
+				text-align:center;
+			}
+		</style>
+		<script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
+		<script>$(function(){
+
+			function hsv(h, s, v) {
+				var c = v*s;
+				var x = c*(1-Math.abs((h/60)%2-1));
+				var m = v-c;
+				var r, g, b;
+
+
+					 if (h < 60)  r=c, g=x, b=0;
+				else if (h < 120) r=x, g=c, b=0;
+				else if (h < 180) r=0, g=c, b=x;
+				else if (h < 240) r=0, g=x, b=c;
+				else if (h < 300) r=x, g=0, b=c;
+				else 			  r=c, g=0, b=x;
+
+
+				return {
+					r: ~~((r+m)*255),
+					g: ~~((g+m)*255),
+					b: ~~((b+m)*255),
+				}
+			}
+
+			function pad(n, digits, base) {
+				return String("0".repeat(digits) + n.toString(base)).slice(-digits)
+			}
+			function cssColor(rgb) {
+				return "#"+pad(rgb.r,2,16)+pad(rgb.g,2,16)+pad(rgb.b,2,16)
+			}
+
+			var colorspaceCanvas = $("#colorspace")[0];
+			var colorspaceCtx = colorspaceCanvas.getContext("2d");
+
+
+
+			function redrawColorspace() {
+				var w = colorspaceCanvas.width, 
+					h = colorspaceCanvas.height;
+
+				imgdata = colorspaceCtx.createImageData(w, h);
+
+				for (var x = 0; x < w; x++) {
+					for (var y = 0; y < h; y++) {
+						var col = hsv(
+							(w-x)/w*360, 
+							y < h/2 ? y / (h/2) : 1,
+							y > h/2 ? 2 * (1 - y / h) : 1
+						)
+						var pos = (y*w + x)*4;
+						imgdata.data[pos]   = col.r;
+						imgdata.data[pos+1] = col.g;
+						imgdata.data[pos+2] = col.b;
+						imgdata.data[pos+3] = 255;
+					}
+				}
+				colorspaceCtx.putImageData(imgdata, 0, 0);
+			}
+
+			fixedtime = 0
+			function update() {
+				var d = new Date(fixedtime || Date.now());
+				var now = d.getTime()-d.getTimezoneOffset()*60000;
+
+				var hour = (now / 3600000)%24
+				var n = Math.abs((hour/6)%2-1)
+
+				var h = 360-(now/87660000-240)%360,
+					s = hour>6&&hour<18 ? 1-n*0.75 : 1,
+					v = hour<6||hour>18 ? 1-n*0.75 : 1;
+
+				var col = cssColor(hsv(h, s, v));
+
+				$("#time").text((d.getHours()%12||12) + ":" + pad(d.getMinutes(),2) + ":" + pad(d.getSeconds(),2) + " " + (d.getHours()<12?"AM":"PM"));
+				$("#date").text((d.getMonth()+1) + "/" + pad(d.getDate(),2) + "/" + pad(d.getFullYear(),2));
+				$("#color").text(col);
+
+				//$("#container").css("background-color", col);
+
+				var width = colorspaceCanvas.width, 
+					height = colorspaceCanvas.height;
+
+				var x = width - (h/360 * width);
+				if (s != 1) {
+					y = s * height/2
+				} else if (v != 1) {
+					y = height * (1 - v/2)
+				} else {
+					y = height/2;
+				}
+				$("#container").css({
+					left: x - 75,
+					top: y - 75,
+					"background-color": col
+				})
+
+				requestAnimationFrame(update)
+			}
+
+			$(window).resize(function() {
+				colorspaceCanvas.width = window.innerWidth;
+				colorspaceCanvas.height = window.innerHeight;
+				redrawColorspace();
+			}).resize()
+
+			update();
+
+			/*
+				fixedtime = Date.now(); dft = 1000*60; i1 = setInterval(function(){fixedtime+=dft}, 10)
+			*/
+
+
+		})</script>
+	</head>
+	<body>
+		<canvas id="colorspace"></canvas>
+		<div id="container">
+			<div id="inner">
+				<div id="time">00:00:00</div>
+				<div id="date">00/00/00</div>
+				<div id="color">#FFFFFF</div>
+			</div>
+		</div>
+	</body>
+</html>
