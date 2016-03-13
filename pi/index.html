@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<style>
+			canvas {
+				position:fixed;
+				top:0px;
+				left:0px;
+			}
+
+			#start-container {
+				position:fixed;
+				top:100px;
+				left:0px;
+				right:0px;
+				text-align:center;
+			}
+
+			#start {
+				display:inline-block;
+				padding:6px;
+				border:1px solid #00f;
+				cursor:pointer;
+			}
+		</style>
+		<script src="//code.jquery.com/jquery-1.12.0.min.js"></script>
+		<script>$(function(){
+
+			canvas = document.getElementById("main");
+			ctx = canvas.getContext("2d");
+
+			var pi_img = new Image();
+			pi_img.src = "/pi/pi.png";
+
+			var r;
+			var running = false;
+
+			var tau = 2*Math.PI;
+
+			// Animation
+
+			function drawCircle(sx, sy, tx, ty, t, show_drawing, show_pointer, draw_pointer) {
+				var x = tx!==undefined ? sx + (tx-sx)*t : sx
+				var y = ty!==undefined ? sy + (ty-sy)*t : sy
+				t = t || 1;
+
+				ctx.beginPath();
+				ctx.arc(x, y, 0.5, 0, show_drawing ? t*tau : tau);
+				ctx.strokeStyle = "#000";
+				ctx.stroke();
+
+				if (show_pointer) {
+					var a = x/0.5
+
+					var s = draw_pointer ? t*0.05 : 0.05;
+
+					ctx.beginPath();
+					ctx.moveTo(0.5*(a-Math.sin(a)) - s*Math.cos(a+Math.PI/2), 0.5*(1+Math.cos(a)) - s*Math.sin(a+Math.PI/2)); // 0.475
+					ctx.lineTo(0.5*(a-Math.sin(a)) + s*Math.cos(a+Math.PI/2), 0.5*(1+Math.cos(a)) + s*Math.sin(a+Math.PI/2)); // 0.525
+					ctx.strokeStyle = "#f00";
+					ctx.stroke();
+				}
+			}
+
+			function line(x1, y1, x2, y2, t) {
+				ctx.beginPath();
+				ctx.moveTo(x1, y1);
+				ctx.lineTo(t ? t*(x2-x1)+x1 : x2, t ? t*(y2-y1)+y1 : y2)
+				ctx.stroke();
+			}
+
+			var steps = [
+				/*
+				{
+					easing:"swing",
+					duration:400,
+					draw:function(t){},
+					persist:false,
+				}
+				*/
+
+				// Draw base
+				{
+					duration:800,
+					draw:function(t) {
+						ctx.strokeStyle = "#000";
+						line(0, 1, 4, 1, t)
+					},
+					persist:true,
+				},
+
+				// Draw circle
+				{
+					duration:800,
+					draw:function(t) {
+						drawCircle(0.5, 0.5, 0.5, 0.5, t, true)
+					},
+				},
+
+
+
+				// Draw lines 1 and 2
+				{
+					duration:400,
+					draw:function(t) {
+						ctx.strokeStyle = "#00f";
+						line(0, 1, 0, 0, t);
+						line(1, 1, 1, 0, t);
+						ctx.strokeStyle = "#000";
+						drawCircle(0.5, 0.5, 0.5, 0.5, t);
+					},
+				},
+				// Persist lines 1 and 2
+				{
+					duration:0,
+					draw:function(t) {
+						ctx.strokeStyle = "#00f";
+						line(0, 1, 0, 0);
+						line(1, 1, 1, 0);
+					},
+					persist:true,
+				},
+				// Move circle
+				{
+					duration:800,
+					draw:function(t) {
+						drawCircle(0.5, 0.5, 1.5, 0.5, t);
+					},
+				},
+
+				// Draw line 3
+				{
+					duration:400,
+					draw:function(t) {
+						ctx.strokeStyle = "#00f";
+						line(2, 1, 2, 0, t);
+						ctx.strokeStyle = "#000";
+						drawCircle(1.5, 0.5);
+					},
+				},
+				// Persist line 3
+				{
+					duration:0,
+					draw:function(t) {
+						ctx.strokeStyle = "#00f";
+						line(2, 1, 2, 0);
+					},
+					persist:true,
+				},
+				// Move circle
+				{
+					duration:800,
+					draw:function(t) {
+						drawCircle(1.5, 0.5, 2.5, 0.5, t);
+					},
+				},
+
+				// Draw line 4
+				{
+					duration:400,
+					draw:function(t) {
+						ctx.strokeStyle = "#00f";
+						line(3, 1, 3, 0, t);
+						ctx.strokeStyle = "#000";
+						drawCircle(2.5, 0.5);
+					},
+				},
+				// Persist line 4
+				{
+					duration:0,
+					draw:function(t) {
+						ctx.strokeStyle = "#00f";
+						line(3, 1, 3, 0);
+					},
+					persist:true,
+				},
+
+				// Move circle
+				{
+					duration:800,
+					draw:function(t) {
+						drawCircle(2.5, 0.5, 3.5, 0.5, t);
+					},
+				},
+
+				// Draw line 5
+				{
+					duration:400,
+					draw:function(t) {
+						ctx.strokeStyle = "#00f";
+						line(4, 1, 4, 0, t);
+						ctx.strokeStyle = "#000";
+						drawCircle(3.5, 0.5);
+					},
+				},
+				// Persist line 5
+				{
+					duration:0,
+					draw:function(t) {
+						ctx.strokeStyle = "#00f";
+						line(4, 1, 4, 0);
+					},
+					persist:true,
+				},
+
+				// Return circle
+				{
+					duration:2000,
+					draw:function(t) {
+						drawCircle(3.5, 0.5, 0, 0.5, t);
+					},
+				},
+
+				// Wait
+				{duration:800,draw:function(t){
+					drawCircle(0, 0.5, 0, 0.5, t, false, true, true);
+				}},
+
+
+				// Spin circle
+				{
+					duration:1000*Math.PI,
+					easing:"linear",
+					draw:function(t) {
+						drawCircle(0, 0.5, Math.PI, 0.5, t, false, true)
+					},
+				},
+				// Draw line for pi
+				{
+					duration:0,
+					draw:function() {
+						ctx.strokeStyle = "#f00";
+						line(Math.PI, 0, Math.PI, 1);
+						ctx.drawImage(pi_img, 0, 0, pi_img.width, pi_img.height, Math.PI-(pi_img.width/r)/2, 1.05, pi_img.width/r, pi_img.height/r)
+					},
+					persist:true,
+				},
+				// Spin circle
+				{
+					duration:4000-(1000*Math.PI),
+					easing:"linear",
+					draw:function(t) {
+						drawCircle(Math.PI, 0.5, 4, 0.5, t, false, true);
+					},
+				},
+
+				// Undraw circle
+				{
+					duration:800,
+					draw:function(t) {
+						ctx.beginPath();
+						ctx.arc(4, 0.5, 0.5, 0, (1-t)*tau);
+						ctx.strokeStyle = "#000";
+						ctx.stroke();
+					}
+				}
+			]
+
+
+			// Engine
+
+			var easing = {
+				linear:  function(t) {return t},
+				swing:   function(t) {return 0.5-Math.cos(t*Math.PI)/2},
+			}
+
+			var t = 0;
+			var current = 0;
+			function draw(dt) {
+				ctx.clearRect(-1, -1, 6, 3)
+
+				if (running) {
+
+					if (current < steps.length) {
+						t += dt;
+						while (steps[current] && t >= steps[current].duration) {
+							t -= steps[current].duration;
+							current++;
+						}
+					}
+
+					for (var i=0; i<current; i++) {
+						if (steps[i].persist) {
+							steps[i].draw(1);
+						}
+					}
+
+					if (steps[current]) steps[current].draw(easing[steps[current].easing||"swing"](Math.max(0, t)/steps[current].duration || 0));
+
+				}
+			}
+
+			$(window).resize(function() {
+				canvas.width = window.innerWidth;
+				canvas.height = window.innerHeight;
+				r = Math.min(window.innerWidth/5, window.innerHeight)*0.9;
+				ctx.setTransform(r, 0, 0, r, window.innerWidth/2 - 4*r/2, window.innerHeight/2.1 - r/2);
+				// hscale hskew vskew vscale xpos ypos
+				ctx.lineWidth = 2/r;
+				ctx.font = 32/r+'px "Arial Black",Gadget,sans-serif';
+				draw(0);
+			}).resize();
+
+
+			$("#start").click(function() {
+				$(this).hide();
+
+				running = true;
+
+				var last_update = Date.now();
+				setInterval(function() {
+					var now = Date.now();
+					draw(now-last_update);
+					last_update = now;
+				}, 13)
+			})
+
+		})</script>
+	</head>
+	<body>
+		<canvas id="main"></canvas>
+		<div id="start-container"><div id="start">Play</div></div>
+	</body>
+</html>
