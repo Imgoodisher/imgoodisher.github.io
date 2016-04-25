@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<style>
+			html, body {
+				position:fixed;
+				top:0px;
+				bottom:0px;
+				left:0px;
+				right:0px;
+				background-color:#222;
+			}
+
+			canvas {
+				position:fixed;
+				top:0px;
+				left:0px;
+			}
+
+			audio {
+				position:fixed;
+				bottom:0px;
+				left:0px;
+				width:100%;
+			}
+
+			#options {
+				color:#ccc;
+				position:fixed;
+				top:10px;
+				left:10px;
+				z-index:999;
+				opacity:0.5;
+				font-family:monospace;
+			}
+
+			#options input, #options button {
+				font-family:monospace;
+			}
+
+			#options p {
+				margin: 8px 0px;
+			}
+
+			input[type="url"] {
+				border: 1px solid;
+				padding: 2px;
+			}
+
+			input:valid {
+				border-color:#00ff00;
+			}
+
+			input:invalid {
+				border-color:#ff0000;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="options">
+			<p>
+				<input id="fileinput" type="file" accept="audio/*"/>
+			</p>
+			<p>
+				<input id="urlinput" type="url" placeholder="http://"/> <button id="loadURL">Load</button>
+			</p>
+			<p>
+				<button id="useMic">Use Microphone</button>
+			</p>
+			<p>
+				Currently Loaded: <span id="current"></span>
+			</p>
+			<br>
+			<p>
+				<input id="opt_3d" type="checkbox"/> 3D
+			</p>
+		</div>
+		<canvas id="canvas1"></canvas>
+		<canvas id="canvas2"></canvas>
+		<canvas id="canvas3"></canvas>
+		<audio controls crossorigin="anonymous"></audio>
+
+		<!--<script src="//code.jquery.com/jquery-1.11.3.min.js"></script>-->
+		<script src="jquery.js"></script>
+		<script src="adapter.js"></script>
+		<script>
+			var canvas1 = $("#canvas1")[0];
+			var ctx1 = canvas1.getContext("2d");
+			var canvas2 = $("#canvas2")[0];
+			var ctx2 = canvas2.getContext("2d");
+			var canvas3 = $("#canvas3")[0];
+			var ctx3 = canvas3.getContext("2d");
+
+			var enable3D = false
+
+
+			function rotate(canvas, x, y, p) {
+				var dist = Math.sqrt(Math.pow(x-canvas.width/2, 2)+Math.pow(y-canvas.height/2, 2))/Math.min(canvas.width, canvas.height)/2;
+				var transform = "translateZ("+p+"px) rotate3d("+(-(y/canvas.height-0.5))+", "+((x/canvas.width-0.5))+", 0, "+(dist)+"rad)";
+				$(canvas).css({
+					"transform-origin": "50% 50% "+(-p)+"px",
+					"transform": transform
+				});
+			}
+
+			var lastmousemove = Date.now();
+
+			$(window).resize(function() {
+				canvas1.width = canvas2.width = canvas3.width = window.innerWidth;
+				canvas1.height = canvas2.height = canvas3.height = window.innerHeight;
+			}).resize().mousemove(function(evt) {
+				lastmousemove = Date.now();
+				if (enable3D) {
+					rotate(canvas1, evt.pageX, evt.pageY, -200);
+					rotate(canvas2, evt.pageX, evt.pageY, 0);
+					rotate(canvas3, evt.pageX, evt.pageY, 200);
+				}
+			}).keypress(function(evt) {
+				lastmousemove = Date.now();
+			})
+
+
+			var audio = new (window.AudioContext || window.webkitAudioContext)();
+
+			var audioElem = $("audio")[0];
+			var elemSource = audio.createMediaElementSource(audioElem);
+			var userSource;
+
+			var analyser = audio.createAnalyser();
+			analyser.fftSize = 512;
+
+			var gain = audio.createGain();
+			gain.connect(analyser);
+
+			elemSource.connect(analyser);
+			analyser.connect(audio.destination);
+			var currentSource = "element"
+
+
+			var filename_regex = /[\/\\]([^\/\\]+)$/
+			$("#fileinput").change(function() {
+				var res = filename_regex.exec(this.value);
+				$("#current").text(res ? res[1] : this.value);
+				$(audioElem).attr("src", URL.createObjectURL(this.files[0]));
+
+				if (currentSource != "element") {
+					currentSource = "element";
+					elemSource.disconnect();
+					analyser.disconnect();
+					if (userSource) userSource.disconnect();
+
+					elemSource.connect(analyser);
+					analyser.connect(audio.destination);
+				}
+			});
+
+			$("#loadURL").click(function() {
+				var val = $("#urlinput").val();
+				$("#current").text(val);
+				$(audioElem).attr("src", "http://crossorigin.me/" + val);
+
+				if (currentSource != "element") {
+					currentSource = "element";
+					elemSource.disconnect();
+					analyser.disconnect();
+					if (userSource) userSource.disconnect();
+
+					elemSource.connect(analyser);
+					analyser.connect(audio.destination);
+				}
+			})
+
+			$("#useMic").click(function() {
+				$("#current").text("...");
+				navigator.getUserMedia(
+					{
+						audio:true 
+					},
+					function(stream) {
+						$("#current").text("Microphone");
+
+						userSource = audio.createMediaStreamSource(stream);
+						
+						if (currentSource != "user") {
+							currentSource = "user";
+							elemSource.disconnect();
+							analyser.disconnect();
+							userSource.disconnect();
+
+							userSource.connect(gain);
+						}
+					},
+					function(err) {
+						$("#current").text(err);
+					}
+				)
+			})
+
+			$("#opt_3d").change(function() {
+				enable3D = this.checked;
+				if (!enable3D) {
+					$("canvas").css("transform", "none");
+				}
+			})
+
+			var lastr = 0;
+
+			var cursorVisible = true;
+
+			var wave = new Uint8Array(analyser.fftSize);
+			var freq = new Uint8Array(analyser.frequencyBinCount);
+			function draw() {
+				requestAnimationFrame(draw);
+
+
+				ctx1.clearRect(0, 0, canvas1.width, canvas1.height);
+				ctx2.clearRect(0, 0, canvas2.width, canvas2.height);
+				ctx3.clearRect(0, 0, canvas3.width, canvas3.height);
+				
+
+				analyser.getByteFrequencyData(freq);
+
+				var w = canvas1.width / analyser.frequencyBinCount;
+
+				// FFT Data (Blue lines)
+
+				var totalFreq = 0;
+
+				var freqData = [];
+				var maxDiff = 0;
+				var maxDiffPos = 0;
+				var maxFreq = 0;
+				var absMaxDiff = 0;
+
+				ctx1.strokeStyle = "#00f";
+				for (var i=0; i<analyser.frequencyBinCount; i++) {
+					var height = freq[i]/128*(canvas1.height/2);
+					var x = canvas1.width/2 + (i%2==0?1:-1)*Math.ceil(i/2)*2*w;
+
+					ctx1.beginPath();
+					ctx1.moveTo(x, canvas1.height/2 - height/2);
+					ctx1.lineTo(x, canvas1.height/2 + height/2);
+					ctx1.stroke();
+
+					totalFreq += freq[i];
+
+					// calculate average difference between this fft sample and those near it
+					var totalDiff = 0;
+					var min = Math.max(i-6, 0);
+					var max = Math.min(i+6, analyser.frequencyBinCount)
+					for (var j = min; j < max; j++) {
+						totalDiff += freq[i] - freq[j]
+					}
+
+					var avgDiff = totalDiff / (max - min);
+					// compare this average to previous averages to find the largest
+					if (avgDiff > maxDiff) {
+						maxDiff = avgDiff
+						maxDiffPos = i % (analyser.frequencyBinCount / 16);
+					}
+
+
+					maxFreq = Math.max(freq[i], maxFreq);
+
+					// for each 16th of the frequencyBinCount, save the data
+					if (i % (analyser.frequencyBinCount / 16) == 0) {
+						absMaxDiff = Math.max(maxDiff, absMaxDiff)
+
+						freqData.push([maxFreq, maxDiff, maxDiffPos]);
+						maxFreq = 0;
+						maxDiff = 0;
+						maxDiffPos = 0;
+					}
+				}
+
+				console.log(freqData[0][0]);
+
+
+				// Waveform (Red line)
+
+				ctx2.lineWidth = 2;
+
+				analyser.getByteTimeDomainData(wave);
+
+				var w = canvas1.width / analyser.fftSize;
+
+
+				ctx2.beginPath()
+				for (i = 0; i<analyser.fftSize; i++) {
+					ctx2.lineTo(i*w, (wave[i]/128)*(canvas2.height/2));
+				}
+
+				ctx2.strokeStyle = "#f00";
+				ctx2.stroke();
+
+
+				// Wave Circle (Green line)
+
+				ctx3.lineWidth = 2;
+
+				var maxFreq = 256*analyser.frequencyBinCount;
+				var avgFreq = totalFreq / maxFreq;
+
+				var maxSize = Math.min(canvas3.width, canvas3.height)/2;
+				var r = lastr = ((avgFreq*maxSize)+lastr*3)/4;
+
+				absMaxDiff = Math.max(0, Math.min(100, absMaxDiff))/100;
+
+				ctx3.strokeStyle = "#0f0";
+				ctx3.beginPath();
+				for (var t=0; t<2*Math.PI; t+=Math.PI/128) {
+					var w = 0
+					for (var i=0; i<16; i++) {
+						// TODO: make constant exponents/bases change based on max fft difference
+						w +=  Math.sin(t*i+(freqData[i][2]/16*2*Math.PI)) // controls rotation of the wave
+							* Math.pow(freqData[i][0]/196, 2*(1-absMaxDiff)) // fft amplitude
+							* Math.pow(freqData[i][1]/100, 2*absMaxDiff) // fft difference
+							* (i/16+1) // make higher frequency waves larger
+							* 4 // scalar resize
+							* r;
+					}
+					var r2 = r + (w/16)
+					ctx3.lineTo(canvas3.width/2 + Math.cos(t)*r2, canvas3.height/2 + Math.sin(t)*r2)
+				}
+
+				ctx3.stroke()
+
+
+				if (Date.now() - lastmousemove < 2000) {
+					if (cursorVisible == false) {
+						cursorVisible = true;
+						$(document.body).css("cursor", "auto");
+						$("#options, audio").fadeIn("fast");
+					}
+				} else if (cursorVisible == true)  {
+					cursorVisible = false;
+					$(document.body).css("cursor", "none");
+					$("#options, audio").fadeOut("fast");
+				}
+			}
+			draw()
+		</script>
+	</body>
+</html>
