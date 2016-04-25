@@ -191,7 +191,7 @@
 						}
 					},
 					function(err) {
-						$("#current").text(err);
+						$("#current").text(err.toString() + ": Name:" + err.name + "; Msg:" + err.message + "; ConstraintName:" + err.constraintName);
 					}
 				)
 			})
